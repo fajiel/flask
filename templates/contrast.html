@@ -1,0 +1,176 @@
+﻿{% extends "layout.html" %}
+
+{% block left %}
+<div class="col-sm-3 col-md-2 sidebar">
+  <ul class="nav nav-sidebar">
+    <li><a href="/">OverView <span class="sr-only">(current)</span></a></li>
+    <li><a href="/worldcloud">WordCloud<span class="sr-only">(current)</span></a></li>
+    <li><a href="/realtime">RealTime <span class="sr-only">(current)</span></a></li>
+    <li class="active"><a href="/contrast">Contrast</a></li>
+  </ul>
+</div>
+{% endblock %}        
+        
+{% block right %}
+<!--右边展示-->
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+  <h1 class="page-header">数据对比图</h1>
+
+  <div class="row placeholders">
+        <!--展示区-->
+        <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div class="col-xs-12 col-sm-8 col-lg-10 placeholder" style="height:500px;" id="main">
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block echarts_js %}
+
+<script type="text/javascript" >
+         $(function (ec) {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main'));
+            myChart.showLoading(); // 加载动画
+            // 指定图表的配置项和数据
+            var option = {
+
+                    legend: {
+                        top: 10,
+                        width: 500,
+                        itemWidth: 40,
+                        data: ['产品A', '产品B', '产品C']
+                    },
+                    toolbox: {
+                        show: true,
+                        feature: {
+                            magicType: {
+                                show:true,
+                                title:{
+                                    line:'切换为折线图',
+                                    bar:'切换为柱状图',
+
+                                },
+                                type: ['line', 'bar']},
+                            // restore: {show:true, title:'重置'},
+                            saveAsImage: {show:true, title:'保存为图片图'}
+                        }
+                    },
+                    xAxis: [{
+                        type: 'category',
+                        axisTick:{
+                            show:true
+                        },
+
+                        data: ['一月', '二月', '三月', '四月', '五月','六月']
+                    }],
+                    yAxis: [{
+                        type: 'value',
+                        min: 0.5,
+                        name:"单位：%",
+                        axisTick:{
+                            show:true
+                        },
+                        axisLine:{
+                            show:true
+                        },
+                        splitLine:{
+                            show:false
+                        },
+                    }],
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { // 坐标轴指示器，坐标轴触发有效
+                            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+                        }
+                    },
+                    series: [{
+                        name: '产品A',
+                        type: 'bar',
+                        itemStyle:{
+                          normal:{
+                              barBorderRadius:5
+                          }
+                        },
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'top'
+                                }
+                    },
+                        data: []
+                    }, {
+                        name: '产品B',
+                        type: 'bar',
+                        barGap: 0,
+                        itemStyle:{
+                          normal:{
+                              barBorderRadius:5
+                          }
+                        },
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'top'
+                                }
+                    },
+                        data: []
+                    }, {
+                        name: '产品C',
+                        type: 'bar',
+                        itemStyle:{
+                          normal:{
+                              barBorderRadius:5
+                          }
+                        },
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'top'
+                                }
+                            },
+                        data: []
+                    }]
+                };
+                myChart.showLoading(); // 加载动画
+                $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url: "/get_contrast", //把表单数据发送到/weather
+                    data: null, // 发送的数据
+                    dataType : "json",  //返回数据形式为json
+                    async: false,
+                    error: function(request) {
+                        alert("发送请求失败！");
+                    },
+                    success: function(result) {
+                        //console.log(result);
+                        for (i = 0, max = result.data[0].length; i < max; i++) { //注意：result.data.length
+                            option.series[0].data.push(result.data[0][i]);
+                            option.series[1].data.push(result.data[1][i]);
+                            option.series[2].data.push(result.data[2][i]);
+                        };
+
+                        // 为echarts对象加载数据--------------
+                        myChart.hideLoading(); // 隐藏加载动画
+                        myChart.setOption(option);
+                    }
+                 });
+
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+                window.onresize = myChart.resize;
+
+                myChart.on('click', function(param){
+                    var date_list = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+                    var name = param.name
+                    if (date_list.indexOf(name) > -1){
+                        window.location.href="/source_data/" + name;
+                    }
+                })
+
+        });
+</script>        
+{% endblock %}

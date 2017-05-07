@@ -1,0 +1,77 @@
+﻿{% extends "layout.html" %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="../static/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../static/css/barrager.css">
+    <link rel="stylesheet" type="text/css" href="../static/css/pick-a-color-1.2.3.min.css">
+    <link type="text/css" rel="stylesheet" href="../static/css/shCoreDefault.css"/>
+{% endblock %}
+
+{% block left %}
+<div class="col-sm-3 col-md-2 sidebar">
+  <ul class="nav nav-sidebar">
+    <li><a href="/">OverView</a></li>
+    <li><a href="/worldcloud">WordCloud</a></li>
+    <li class="active"><a href="/realtime">RealTime</a></li>
+    <li><a href="/contrast">Contrast</a></li>
+  </ul>
+</div>
+{% endblock %}        
+        
+{% block right %}
+<!--右边展示-->
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+  <h1 class="page-header">数据实时监控</h1>
+
+  <div class="row placeholders">
+        <!--展示区-->
+        <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div class="col-xs-12 col-sm-8 col-lg-10 placeholder" id="main">
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block echarts_js %}
+<script type="text/javascript" src="../static/js/tinycolor-0.9.15.min.js"></script>
+<script type="text/javascript" src="../static/js/jquery.barrager.js"></script>
+<script type="text/javascript" src="../static/js/shCore.js"></script>
+<script type="text/javascript" src="../static/js/shBrushJScript.js"></script>
+<script type="text/javascript" src="../static/js/shBrushPhp.js"></script>
+<script type="text/javascript" src="../static/pick-a-color/js/pick-a-color-1.2.3.min.js"></script>
+<script type="text/javascript" >
+    //每条弹幕发送间隔
+    var looper_time=6*1000;
+    //是否首次执行
+    var run_once=true;
+    do_barrager();
+
+    function do_barrager(){
+      if(run_once){
+          //如果是首次执行,则设置一个定时器,并且把首次执行置为false
+          looper=setInterval(do_barrager,looper_time);
+          run_once=false;
+      }
+      //获取
+      $.ajax({
+            cache: false,
+            type: "POST",
+            url: "/get_item", //把表单数据发送到/weather
+            data: null, // 发送的数据
+            dataType : "json",  //返回数据形式为json
+            async: false,
+            error: function(request) {
+                alert("发送请求失败！");
+            },
+            success: function(result) {
+                //console.log(result);
+                for (i = 0, max = result.data.length; i < max; i++) { //注意：result.data.length
+                    $("body").barrager(result.data[i]);
+                }
+            }
+         });
+    }
+</script>        
+{% endblock %}

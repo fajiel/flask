@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+
+{% block left %}
+<div class="col-sm-3 col-md-2 sidebar">
+  <ul class="nav nav-sidebar">
+    <li ><a href="/">OverView <span class="sr-only">(current)</span></a></li>
+    <li class="active"><a href="/worldcloud">WordCloud</a></li>
+    <li><a href="/realtime">RealTime <span class="sr-only">(current)</span></a></li>
+    <li><a href="/contrast">Contrast</a></li>
+  </ul>
+</div>
+{% endblock %}        
+        
+{% block right %}
+<!--右边展示-->
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+  <h1 class="page-header">负向词云图</h1>
+
+  <div class="row placeholders">
+        <!--展示区-->
+        <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div class="col-xs-12 col-sm-8 col-lg-10 placeholder" style="height:500px;" id="main">
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block echarts_js %}
+<script src="../static/js/worldcloud.js" charset="utf-8"></script>
+<script type="text/javascript">
+         $(function (ec) {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main'));
+
+            // 指定图表的配置项和数据
+            var option = {
+                title:{
+                    // text:"负向词云图",
+
+                },
+                tooltip: {},
+                series: [{
+                    type: 'wordCloud',
+                    gridSize: 20,
+                    sizeRange: [30, 80],
+                    rotationRange: [0, 0],
+                    shape: 'circle',
+                    textStyle: {
+                        normal: {
+                            color: function() {
+                                return 'rgb(' + [
+                                    Math.round(Math.random() * 160),
+                                    Math.round(Math.random() * 160),
+                                    Math.round(Math.random() * 160)
+                                ].join(',') + ')';
+                            }
+                        },
+                        emphasis: {
+                            shadowBlur: 10,
+                            shadowColor: '#333'
+                        }
+                    },
+                    data: [
+                    {% for item in data_list %}
+                    {
+                        "name": "{{ item['name'] }}",
+                        "value": {{ item['value'] }}
+                    },
+                    {% endfor %}
+                    ]
+                }]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+            window.onresize = myChart.resize;
+            myChart.on('click', function(param){
+                // var date_list = {{ name_list|safe }};
+                var name = param.name;
+                // if (date_list.indexOf(name) > -1){
+                    window.location.href="/worldcloud_data/" + name;
+                // }
+            })
+
+        });
+</script>        
+{% endblock %}
